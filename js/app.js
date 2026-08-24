@@ -3,7 +3,6 @@
 
     // ----- DATOS DEMO (más de 12 remesas) -----
     const companies = ['Western Union', 'MoneyGram', 'Ria', 'Xoom', 'PayPal', 'Transferwise', 'Remitly', 'WorldRemit', 'Azimo', 'Small World'];
-    const statuses = ['COBRADO', 'NO_COBRADO'];
 
     function randomDate(start, end) {
         const d = new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
@@ -23,7 +22,7 @@
         }
         remesas.push({ id, company, amount, status, created_at, charged_at });
     }
-    let cobradosCount = remesas.filter(r => r.status === 'COBRADO').length;
+    let cobradosCount = remesas.filter(remesa => remesa.status === 'COBRADO').length;
     if (cobradosCount < 10) {
         for (let i = 0; i < remesas.length && cobradosCount < 10; i++) {
             if (remesas[i].status === 'NO_COBRADO') {
@@ -49,6 +48,7 @@
     const topCobradosList = document.getElementById('topCobradosList');
     const errorContainer = document.getElementById('errorContainer');
     const calcDisplay = document.getElementById('calcDisplay');
+    const montoDisplay = document.getElementById('montoDisplay');
     const clearBtn = document.getElementById('clearBtn');
     const cobrarBtn = document.getElementById('cobrarBtn');
     const numButtons = document.querySelectorAll('.num');
@@ -79,25 +79,23 @@
         setTimeout(() => { if (toast.parentNode) toast.remove(); }, 4000);
     }
 
-    function getTopCobrados() {
-        const cobrados = remesas.filter(r => r.status === 'COBRADO' && r.charged_at);
+    function getTopCobrados(lista) {
+        const cobrados = lista.filter(remesa => remesa.status === 'COBRADO' && remesa.charged_at);
         cobrados.sort((a, b) => b.charged_at.localeCompare(a.charged_at));
         return cobrados.slice(0, 10);
     }
 
     function renderTopCobrados() {
-        const top = getTopCobrados();
+        const top = getTopCobrados(filteredRemesas);
         if (top.length === 0) {
-            topCobradosList.innerHTML = '<p style="color:#64748b; padding: 8px 0;">No hay remesas cobradas.</p>';
+            topCobradosList.innerHTML = '<p style="color:#64748b; padding: 8px 0;">No hay remesas cobradas que coincidan.</p>';
             return;
         }
         let html = '';
-        top.forEach(r => {
+        top.forEach(remesa => {
             html += `
         <div class="top-item">
-          <span class="top-id">${r.id}</span>
-          <span class="top-company">${r.company}</span>
-          <span class="top-amount">$${r.amount.toLocaleString()}</span>
+          <span>#${remesa.id} ${remesa.company}: $${remesa.amount.toFixed(2)}</span>
         </div>
       `;
         });
@@ -113,16 +111,16 @@
             tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:30px; color:#64748b;">No hay remesas que coincidan.</td></tr>`;
         } else {
             let html = '';
-            pageData.forEach(r => {
-                const statusClass = r.status === 'COBRADO' ? 'status-cobrado' : 'status-no-cobrado';
+            pageData.forEach(remesa => {
+                const statusClass = remesa.status === 'COBRADO' ? 'status-cobrado' : 'status-no-cobrado';
                 html += `
           <tr>
-            <td><strong>${r.id}</strong></td>
-            <td>${r.company}</td>
-            <td>$${r.amount.toLocaleString()}</td>
-            <td><span class="status-badge ${statusClass}">${r.status}</span></td>
-            <td>${r.created_at}</td>
-            <td>${r.charged_at || '-'}</td>
+            <td><strong>${remesa.id}</strong></td>
+            <td>${remesa.company}</td>
+            <td>$${remesa.amount.toFixed(2)}</td>
+            <td><span class="status-badge ${statusClass}">${remesa.status}</span></td>
+            <td>${remesa.created_at}</td>
+            <td>${remesa.charged_at || '-'}</td>
           </tr>
         `;
             });
@@ -140,10 +138,10 @@
         if (term === '') {
             filteredRemesas = [...remesas];
         } else {
-            filteredRemesas = remesas.filter(r =>
-                r.id.toLowerCase().includes(term) ||
-                r.company.toLowerCase().includes(term) ||
-                r.amount.toString().includes(term)
+            filteredRemesas = remesas.filter(remesa =>
+                remesa.id.toLowerCase().includes(term) ||
+                remesa.company.toLowerCase().includes(term) ||
+                remesa.amount.toString().includes(term)
             );
         }
         currentPage = 1;
@@ -162,6 +160,8 @@
     // ----- LÓGICA DE COBRAR (calculadora) -----
     function handleCobrar() {
         const id = calcDisplay.value.trim();
+        const montoStr = montoDisplay.value.trim();
+
         if (!id) {
             showError('Debe ingresar un ID.');
             return;
@@ -171,7 +171,21 @@
             return;
         }
 
-        const remesa = remesas.find(r => r.id === id);
+        let montoNum = null;
+        if (montoStr !== '') {
+            let cleaned = montoStr.replace(/,/g, '').replace(/\s/g, '');
+            if (!/^-?\d*\.?\d+$/.test(cleaned) && !/^-?\d+$/.test(cleaned)) {
+                showError('El monto debe ser un número válido (ej: 12000.50 o 12,000.50).');
+                return;
+            }
+            montoNum = parseFloat(cleaned);
+            if (isNaN(montoNum) || montoNum < 0) {
+                showError('El monto debe ser un número positivo.');
+                return;
+            }
+        }
+
+        const remesa = remesas.find(remesa => remesa.id === id);
         if (!remesa) {
             showError(`No existe ninguna remesa con ID "${id}".`);
             return;
@@ -181,39 +195,38 @@
             return;
         }
 
-        // Cobrar
         const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         remesa.status = 'COBRADO';
         remesa.charged_at = today;
+        if (montoNum !== null) {
+            remesa.amount = montoNum;
+        }
 
         calcDisplay.value = '';
+        montoDisplay.value = '';
+
         applySearch();
         showSuccess(`✅ Remesa ${id} cobrada exitosamente.`);
     }
 
     // ----- EVENTOS -----
-    // Búsqueda
     searchBtn.addEventListener('click', applySearch);
     searchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') applySearch(); });
 
-    // Paginación
     prevPageBtn.addEventListener('click', () => changePage(-1));
     nextPageBtn.addEventListener('click', () => changePage(1));
 
     // ----- CALCULADORA: TECLADO Y BOTONES -----
-    // Función para actualizar el display (validar y cortar)
     function updateDisplay(value) {
         let cleaned = value.replace(/\D/g, '');
         if (cleaned.length > 8) cleaned = cleaned.slice(0, 8);
         calcDisplay.value = cleaned;
     }
 
-    // Evento input (cuando el usuario escribe)
     calcDisplay.addEventListener('input', function (e) {
         updateDisplay(this.value);
     });
 
-    // Prevenir caracteres no numéricos en el teclado
     calcDisplay.addEventListener('keydown', function (e) {
         const key = e.key;
         if (key === 'Backspace' || key === 'Delete' || key === 'Tab' || key === 'Escape' || key === 'Enter') {
@@ -224,7 +237,6 @@
         }
     });
 
-    // Botones numéricos
     numButtons.forEach(btn => {
         btn.addEventListener('click', function () {
             const current = calcDisplay.value;
@@ -236,12 +248,10 @@
         });
     });
 
-    // Botón borrar
     clearBtn.addEventListener('click', function () {
         calcDisplay.value = calcDisplay.value.slice(0, -1);
     });
 
-    // Botón cobrar
     cobrarBtn.addEventListener('click', handleCobrar);
 
     // Inicialización
