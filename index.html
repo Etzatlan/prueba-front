@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ventanilla Digital - Prueba Front-end</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+  <div class="app-container">
+
+    <!-- Encabezado -->
+    <header>
+      <h1><i class="fa-solid fa-cash-register"></i></i> Ventanilla Digital</h1>
+      <div class="date">
+        <i class="far fa-calendar-alt"></i> Hoy: <span id="todayDate"></span>
+      </div>
+    </header>
+
+    <!-- Grid principal: izquierda (tabla) + derecha (calculadora) -->
+    <div class="main-grid">
+      <!-- COLUMNA IZQUIERDA -->
+      <div class="left-col">
+        <!-- Buscador -->
+        <section class="search-section">
+          <label for="searchInput"><i class="fas fa-search"></i> Buscar:</label>
+          <input type="text" id="searchInput" placeholder="ID, compañía o monto..." />
+          <button id="searchBtn"><i class="fas fa-arrow-right"></i> Filtrar</button>
+        </section>
+
+        <!-- Tabla de remesas -->
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Compañía</th>
+                <th>Monto</th>
+                <th>Estado</th>
+                <th>Fecha creación</th>
+                <th>Fecha cobro</th>
+              </tr>
+            </thead>
+            <tbody id="remesasBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Paginación -->
+        <div class="pagination">
+          <button id="prevPageBtn"><i class="fas fa-chevron-left"></i> Anterior</button>
+          <span id="pageInfo">Página 1 de 1</span>
+          <button id="nextPageBtn">Siguiente <i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
+
+      <!-- COLUMNA DERECHA: CALCULADORA -->
+      <div class="right-col">
+        <section class="calculator-section">
+          <h2><i class="fas fa-calculator"></i> Cobrar remesa</h2>
+          <div class="calculator">
+            <!-- Campo ID -->
+            <div class="calc-field">
+              <label for="calcDisplay">ID (máx 8 dígitos)</label>
+              <div class="calc-display">
+                <input type="text" id="calcDisplay" placeholder="ID" />
+              </div>
+            </div>
+            <!-- Campo Monto -->
+            <div class="calc-field">
+              <label for="montoDisplay">Monto</label>
+              <div class="calc-display">
+                <input type="text" id="montoDisplay" placeholder="Ej: 12,000.50" />
+              </div>
+            </div>
+            <!-- Teclado numérico (solo para ID) -->
+            <div class="calc-keys">
+              <button class="num" data-value="1">1</button>
+              <button class="num" data-value="2">2</button>
+              <button class="num" data-value="3">3</button>
+              <button class="num" data-value="4">4</button>
+              <button class="num" data-value="5">5</button>
+              <button class="num" data-value="6">6</button>
+              <button class="num" data-value="7">7</button>
+              <button class="num" data-value="8">8</button>
+              <button class="num" data-value="9">9</button>
+              <button class="num" data-value="0">0</button>
+              <button id="clearBtn"><i class="fas fa-delete-left"></i></button>
+              <button id="cobrarBtn" class="btn-cobrar"><i class="fas fa-check-circle"></i> Cobrar</button>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <!-- Sección "Hoy" (primeras 10 cobradas) - ocupa todo el ancho abajo -->
+    <section class="top-cobrados">
+      <h2><i class="fas fa-clock"></i> Hoy</h2>
+      <div id="topCobradosList" class="top-list">
+        <!-- Se llena dinámicamente -->
+      </div>
+    </section>
+
+  </div>
+
+  <!-- Contenedor de errores (toast) -->
+  <div id="errorContainer" class="error-container"></div>
+
+  <script src="js/app.js"></script>
+</body>
+
+</html>
