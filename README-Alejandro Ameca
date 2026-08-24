@@ -25,10 +25,6 @@ Permite visualizar, buscar, paginar y cobrar remesas mediante una interfaz tipo 
 - **Mensajes de error/success**: sistema de toasts en la esquina inferior derecha.
 - **Diseño responsivo**: se adapta a móvil, tablet y escritorio.
 
-## Cómo ejecutar
-1. Clona el repositorio.
-2. Abre `index.html` en tu navegador (no requiere servidor).
-3. Interactúa con la tabla, el buscador y la calculadora.
 
 ## Estructura del proyecto
 
